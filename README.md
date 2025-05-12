@@ -1,9 +1,9 @@
-# TeaStaking Contract Overview
+# Staking Contract Overview
 
-The TeaStaking contract allows users to stake Tea and presale tokens, earn rewards, and manage their
-stakes. The contract supports several staking scenarios including VIP/Standard and Presale/TEA token
+The Staking contract allows users to stake 2 types of tokens, earn rewards, and manage their
+stakes. The contract supports several staking scenarios including VIP/Standard and Presale/Native token
 staking, with a loyalty program that increases rewards for long-term stakers. It integrates with the
-TeaVesting contract and ensures secure token transfers using on-chain computations and external
+Vesting contract and ensures secure token transfers using on-chain computations and external
 off-chain systems for certain operations.
 
 ## List of Contents
@@ -22,7 +22,7 @@ off-chain systems for certain operations.
 ### Key Features
 
 - Multiple Staking Cases: Supports staking for both VIP and Standard users, and distinguishes
-  between Presale and TEA tokens.
+  between Presale and Native tokens.
 - Loyalty Program: Long-term stakers receive up to 50% more rewards over time.
 - Off-chain Integration: Certain operations, such as reward calculations, are offloaded to a backend
   to ensure scalability and efficiency.
@@ -39,13 +39,6 @@ off-chain systems for certain operations.
   follows the basic staking rules.
 - VIP Users: Users staking above a certain token threshold are granted VIP status, allowing them to
   benefit from extended lock periods and potentially higher rewards.
-
-## Presale vs TEA Token Staking
-
-- Presale Tokens: These tokens are staked with specific rules, including special vesting and claim
-  periods, managed through the TeaVesting contract.
-- TEA Tokens: Standard staking rules apply for TEA tokens with customizable periods and reward
-  structures based on the user’s stake size and loyalty level.
 
 ### Loyalty Program
 
@@ -206,7 +199,7 @@ The contract includes custom errors for various failure cases such as:
 
 ### Security and Safeguards
 
-The TeaStaking contract incorporates various security measures to ensure safe and fair staking:
+The Staking contract incorporates various security measures to ensure safe and fair staking:
 
 - ReentrancyGuard: Prevents reentrancy attacks.
 - SafeERC20: Ensures secure token transfers.
