@@ -9,13 +9,13 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {Permitable} from "./components/Permitable.sol";
 
 import {IAllowanceTransfer} from "./interfaces/IAllowanceTransfer.sol";
-import {ITeaStaking} from "./interfaces/ITeaStaking.sol";
-import {ITeaVesting} from "./interfaces/ITeaVesting.sol";
+import {IStaking} from "./interfaces/IStaking.sol";
+import {IVesting} from "./interfaces/IVesting.sol";
 import {SignatureHandler} from "./SignatureHandler.sol";
 
-/// @title TeaStaking
-/// @notice The contract which allowing users to stake Tea and presale tokens, earn allocationrewards, and manage theirs stakes
-contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Context, Permitable {
+/// @title Staking
+/// @notice The contract which allowing users to stake native and presale tokens, earn allocationrewards, and manage theirs stakes
+contract Staking is IStaking, ReentrancyGuard, SignatureHandler, ERC2771Context, Permitable {
     using SafeERC20 for IERC20Metadata;
     using EnumerableSet for *;
 
@@ -51,9 +51,9 @@ contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Co
 
     /// @notice The address of the treasury
     address public immutable treasury;
-    /// @notice The address of the Tea vesting contract
-    ITeaVesting public immutable teaVesting;
-    /// @notice The address of the Tea token
+    /// @notice The address of the vesting contract
+    IVesting public immutable vesting;
+    /// @notice The address of the Native token
     IERC20Metadata public immutable teaToken;
 
     /// @notice The state of the staking
@@ -74,7 +74,7 @@ contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Co
      * @param treasury_ The address of the treasury
      * @param operators The list of operators
      * @param trustedForwarder The address of the trusted forwarder
-     * @param teaVesting_ The address of the vesting contract
+     * @param vesting_ The address of the vesting contract
      * @param teaToken_ The address of the token
      * @param presaleTokens The list of presale tokens
      */
@@ -83,35 +83,35 @@ contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Co
         address treasury_,
         address[] memory operators,
         address trustedForwarder,
-        address teaVesting_,
+        address vesting_,
         address teaToken_,
         address[] memory presaleTokens,
         address permit2_
     ) ERC2771Context(trustedForwarder) SignatureHandler(operators) Permitable(permit2_) {
         if (
             admin == address(0) || treasury_ == address(0) || trustedForwarder == address(0)
-                || teaVesting_ == address(0) || teaToken_ == address(0)
+                || vesting_ == address(0) || teaToken_ == address(0)
         ) {
             revert NoZeroAddress();
         }
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
 
         treasury = treasury_;
-        teaVesting = ITeaVesting(teaVesting_);
+        vesting = IVesting(vesting_);
         teaToken = IERC20Metadata(teaToken_);
 
-        uint256 teaDecimals = teaToken.decimals();
-        vipAmount = 1_000_000 * 10 ** teaDecimals;
+        uint256 decimals = teaToken.decimals();
+        vipAmount = 1_000_000 * 10 ** decimals;
 
         uint256 length = presaleTokens.length;
         for (uint256 i = 0; i < length; ++i) {
             if (presaleTokens[i] == address(0)) {
                 revert NoZeroAddress();
             }
-            if (IERC20Metadata(presaleTokens[i]).decimals() != teaDecimals) {
+            if (IERC20Metadata(presaleTokens[i]).decimals() != decimals) {
                 revert WrongDecimalNumber();
             }
-            if (teaVesting.getVestingTokens(presaleTokens[i]).dateEnd == 0) revert OnlyValidToken();
+            if (vesting.getVestingTokens(presaleTokens[i]).dateEnd == 0) revert OnlyValidToken();
             validTokens[presaleTokens[i]] = true;
         }
     }
@@ -196,11 +196,11 @@ contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Co
                 totalStakedTea += _amount;
             } else {
                 if (_token != offChainData[i].token || address(this) != offChainData[i].to) revert AddressesMismatch();
-                ITeaVesting.UserVesting memory vestingInfo = teaVesting.getVestingUsers(user, _token);
+                IVesting.UserVesting memory vestingInfo = vesting.getVestingUsers(user, _token);
                 if (vestingInfo.tokensForVesting - vestingInfo.totalVestingClaimed < _amount) {
                     revert NotEnoughLockedTokens();
                 }
-                teaVesting.transferOwnerOffChain(offChainData[i]);
+                vesting.transferOwnerOffChain(offChainData[i]);
             }
 
             updateRewardPerShare();
@@ -268,7 +268,7 @@ contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Co
         teaToken.safeTransfer(user, amountToClaim);
     }
 
-    /// @inheritdoc ITeaStaking
+    /// @inheritdoc IStaking
     function unstake(UnstakeParam calldata unstakeParams) external {
         (bool success, string memory errorReason) = _verifySignature(_msgSender(), unstakeParams, true);
         require(success, errorReason);
@@ -276,7 +276,7 @@ contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Co
         _unstake(unstakeParams.ids, unstakeParams.rewardsWithLoyalty);
     }
 
-    /// @inheritdoc ITeaStaking
+    /// @inheritdoc IStaking
     function withdraw(uint256[] memory ids) external nonReentrant {
         address user = _msgSender();
         uint256 length = ids.length;
@@ -303,8 +303,8 @@ contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Co
             if (_isTeaToken(token)) {
                 teaToken.safeTransfer(user, _availableTokens);
             } else {
-                teaVesting.claim(token, user);
-                teaVesting.transferOwnerOnChain(token, address(this), user);
+                vesting.claim(token, user);
+                vesting.transferOwnerOnChain(token, address(this), user);
             }
             emit Withdrawal(user, token, _id, _availableTokens);
         }
@@ -312,7 +312,7 @@ contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Co
 
     // ------------------------------------------ External / Public view functions ----------------
 
-    /// @inheritdoc ITeaStaking
+    /// @inheritdoc IStaking
     function getUserIds(address user) public view returns (uint256[] memory) {
         return userIds[user].values();
     }
@@ -333,7 +333,7 @@ contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Co
         }
     }
 
-    /// @inheritdoc ITeaStaking
+    /// @inheritdoc IStaking
     function getTotalUserStakedTokens(address user) public view returns (uint256 totalAmount) {
         uint256 length = userIds[user].length();
         for (uint256 i = 0; i < length; ++i) {
@@ -341,7 +341,7 @@ contract TeaStaking is ITeaStaking, ReentrancyGuard, SignatureHandler, ERC2771Co
         }
     }
 
-    /// @inheritdoc ITeaStaking
+    /// @inheritdoc IStaking
     function updateRewardPerShare() public {
         if (block.number > lastRewardBlockNumber) {
             if (totalStakedTokens > 0 && stakingRun) {
