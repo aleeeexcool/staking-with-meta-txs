@@ -5,11 +5,11 @@ import {IStruct} from "./IStruct.sol";
 import {IAllowanceTransfer} from "./IAllowanceTransfer.sol";
 import {ITokenPermitSignatureDetails} from "./ITokenPermitSignatureDetails.sol";
 /**
- * @title ITeaStaking
- * @notice Interface for Tea Staking contract allowing users to stake tokens, earn rewards, and manage staking details
- * @dev This interface defines the structure and errors used in the Tea Staking system
+ * @title IStaking
+ * @notice Interface for Staking contract allowing users to stake tokens, earn rewards, and manage staking details
+ * @dev This interface defines the structure and errors used in the Staking system
  */
-interface ITeaStaking is IStruct {
+interface IStaking is IStruct {
     /**
      * @notice Structure representing a user's stake
      * @param vip Whether the user is marked as a VIP

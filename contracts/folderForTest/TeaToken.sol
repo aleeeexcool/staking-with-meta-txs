@@ -14,23 +14,22 @@ import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC2
 contract TeaToken is ERC20, ERC2771Context, ERC20Permit, ERC20Votes, ZeroAddressError, Ownable, ERC20Burnable {
     /**
      * @dev Constructor
-     * @param name_ The name of the TEA token
-     * @param symbol_ The symbol of the TEA token
+     * @param name_ The name of the Tea token
+     * @param symbol_ The symbol of the Native token
      * @param trustedForwarder_ The trusted forwarder address
      * @param multisigWallet The multisig wallet address
      * @param _treasury The treasury address
      * @param initialSupply The initial supply of the token
      */
     constructor(
-        string memory name_, // "Tea-Fi Token"
-        string memory symbol_, // "TEA"
+        string memory name_,
+        string memory symbol_,
         address trustedForwarder_,
         address multisigWallet,
         address _treasury,
-        uint256 initialSupply // 300M
+        uint256 initialSupply
     ) ERC20(name_, symbol_) ERC2771Context(trustedForwarder_) ERC20Permit(name_) Ownable(multisigWallet) {
         if (trustedForwarder_ == address(0) || _treasury == address(0)) revert ZeroAddress();
-        // treasury is checked in ERC20._mint
         _mint(_treasury, initialSupply);
     }
 

@@ -18,7 +18,7 @@ abstract contract SignatureHandler is EIP712, AccessControl, IStruct {
     /// @dev keccak256("OPERATOR_ROLE")
     bytes32 public constant OPERATOR_ROLE = 0x20296b01d0b6bd176f0c1e29644934c0047abf080dae43609a1bbc09e39bafdb;
 
-    constructor(address[] memory operators) EIP712("TeaStaking", "1.0") {
+    constructor(address[] memory operators) EIP712("Staking", "1.0") {
         uint256 length = operators.length;
         for (uint256 i = 0; i < length; ++i) {
             if (operators[i] == address(0)) revert NoZeroAddress();

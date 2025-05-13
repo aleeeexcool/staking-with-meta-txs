@@ -12,7 +12,7 @@ import {Nonces} from "@openzeppelin/contracts/utils/Nonces.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 
-interface ITeaVesting {
+interface IVesting {
     // ------------------------------------------ Errors ---------------------------------------
     error OnlyVestingOwner();
 

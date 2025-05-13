@@ -4,11 +4,11 @@ pragma solidity =0.8.23;
 import {IStruct} from "./IStruct.sol";
 
 /**
- * @title ITeaVesting
- * @notice Interface for Tea Vesting contract which manages token vesting for users, allowing them to claim tokens over time
+ * @title IVesting
+ * @notice Interface for Vesting contract which manages token vesting for users, allowing them to claim tokens over time
  * @dev This interface defines the structures and functions related to user token vesting
  */
-interface ITeaVesting is IStruct {
+interface IVesting is IStruct {
     /**
      * @notice Structure representing a user's vesting details
      * @param tokensForVesting The total number of tokens allocated for vesting
